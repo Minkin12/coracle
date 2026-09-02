@@ -1,9 +1,7 @@
 package dev.minkin.coracle.service;
 
 import dev.minkin.coracle.model.*;
-import dev.minkin.coracle.model.actions.Action;
-import dev.minkin.coracle.model.actions.Apply;
-import dev.minkin.coracle.model.actions.Send;
+import dev.minkin.coracle.model.actions.*;
 import dev.minkin.coracle.model.events.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,7 +36,6 @@ public class Boat {
     List<Action> process(Event event) {
         List<Action> intentions = new ArrayList<>();
         switch (event) {
-
             case AppendEntriesRequest appendEntriesRequest:
                 if (currentTerm < appendEntriesRequest.candidateTerm()) {
                     currentTerm = appendEntriesRequest.candidateTerm();
@@ -56,18 +53,24 @@ public class Boat {
             case RequestVoteRequest requestVoteRequest:
                 Entry lastLogEntry = entries.getLast();
                 if (currentTerm > requestVoteRequest.term()) {
-                    intentions.add(new Send(new RequestVoteResponse(currentTerm, false)));
-                } else {
+                    intentions.add(new Send(new RequestVoteResponse(currentTerm, false), requestVoteRequest.candidateId()));
+                    break;
+                } else if (currentTerm < requestVoteRequest.term()) {
                     currentTerm = requestVoteRequest.term();
                     role = Role.FOLLOWER;
                     votedFor = null;
+                    intentions.add(new Persist(new PersistentState(currentTerm, null,entries)));
                 }
+                boolean canVote = votedFor == null || votedFor.equals(requestVoteRequest.candidateId());
+                boolean logIsCurrent = lastLogEntry.term() < requestVoteRequest.lastLogTerm() || (lastLogEntry.term().equals(requestVoteRequest.lastLogTerm()) && lastIndex() <= requestVoteRequest.lastLogIndex());
+                if (canVote && logIsCurrent) {
+                    votedFor = requestVoteRequest.candidateId();
+                    intentions.add(new Persist(new PersistentState(currentTerm, votedFor, entries)));
+                    intentions.add(new Send(new RequestVoteResponse(currentTerm, true), requestVoteRequest.candidateId()));
+                    intentions.add(new ResetTimer());
 
-
-                if ((votedFor == null || votedFor.equals(requestVoteRequest.candidateId())) && (requestVoteRequest.lastLogTerm().equals(lastLogEntry.term()) && entries.size() <= requestVoteRequest.lastLogIndex())) {
-                    intentions.add(new Send(new RequestVoteResponse(currentTerm, true)));
                 } else {
-                    intentions.add(new Send(new RequestVoteResponse(currentTerm, false)));
+                    intentions.add(new Send(new RequestVoteResponse(currentTerm, false), requestVoteRequest.candidateId()));
                 }
                 break;
             case RequestVoteResponse requestVoteResponse:
@@ -78,6 +81,10 @@ public class Boat {
            lastApplied = commitIndex;
         }
         return intentions;
+    }
+
+    private int lastIndex() {
+        return entries.size() - 1;
     }
 
 

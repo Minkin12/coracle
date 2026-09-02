@@ -33,7 +33,7 @@ public class Fleet {
                     .otherBoats(new ArrayList<>())
                     .currentTerm(0)
                     .votedFor(-1)
-                    .entries(new ArrayList<>())
+                    .entries(List.of(new Entry(0,"")))
                     .build());
             electionTimeoutMap.put(i, random.nextInt(150, 300));
         }
@@ -50,9 +50,9 @@ public class Fleet {
         for (int i = 0; i < boats.size(); i++) {
             Boat boat = boats.get(i);
             PersistentState currentBoatState = persistentStates.get(i);
-            boat.setCurrentTerm(currentBoatState.getCurrentTerm());
-            boat.setVotedFor(currentBoatState.getVotedFor());
-            boat.getEntries().addAll(currentBoatState.getEntries());
+            boat.setCurrentTerm(currentBoatState.currentTerm());
+            boat.setVotedFor(currentBoatState.votedFor());
+            boat.setEntries(currentBoatState.entries());
         }
 
 
@@ -62,9 +62,9 @@ public class Fleet {
         if (boats.containsKey(id)) {
             Boat boat = boats.get(id);
             PersistentState currentBoatState = persistentStates.get(id);
-            boat.setCurrentTerm(currentBoatState.getCurrentTerm());
-            boat.setVotedFor(currentBoatState.getVotedFor());
-            boat.getEntries().addAll(currentBoatState.getEntries());
+            boat.setCurrentTerm(currentBoatState.currentTerm());
+            boat.setVotedFor(currentBoatState.votedFor());
+            boat.setEntries(currentBoatState.entries());
         } else {
             List<Integer> ids = new ArrayList<>(boats.keySet().stream().toList());
             ids.remove(id);
@@ -74,9 +74,8 @@ public class Fleet {
                     .otherBoats(ids)
                     .currentTerm(0)
                     .votedFor(-1)
-                    .entries(new ArrayList<>())
+                    .entries(List.of(new Entry(0,"")))
                     .build());
-
             electionTimeoutMap.put(id, random.nextInt(150, 300));
         }
     }
