@@ -10,7 +10,7 @@ public class Fleet {
     PriorityQueue<Event> eventQueue = new PriorityQueue<>();
     Map<Integer, Integer> electionTimeoutMap = new HashMap<>();
     Map<Integer, Boat> boats = new HashMap<>();
-    Map<Integer, List<Entry>> stateMachines = new HashMap<>();
+    Map<Integer, Log> stateMachines = new HashMap<>();
     // simulated persistence
     Map<Integer, PersistentState> persistentStates = new HashMap<>();
     // simulated clock
@@ -33,7 +33,7 @@ public class Fleet {
                     .otherBoats(new ArrayList<>())
                     .currentTerm(0)
                     .votedFor(-1)
-                    .entries(List.of(new Entry(0,"")))
+                    .log(new Log())
                     .build());
             electionTimeoutMap.put(i, random.nextInt(150, 300));
         }
@@ -52,7 +52,7 @@ public class Fleet {
             PersistentState currentBoatState = persistentStates.get(i);
             boat.setCurrentTerm(currentBoatState.currentTerm());
             boat.setVotedFor(currentBoatState.votedFor());
-            boat.setEntries(currentBoatState.entries());
+            boat.setLog(new Log(currentBoatState.log().getEntries()));
         }
 
 
@@ -64,7 +64,7 @@ public class Fleet {
             PersistentState currentBoatState = persistentStates.get(id);
             boat.setCurrentTerm(currentBoatState.currentTerm());
             boat.setVotedFor(currentBoatState.votedFor());
-            boat.setEntries(currentBoatState.entries());
+            boat.setLog(new Log(currentBoatState.log().getEntries()));
         } else {
             List<Integer> ids = new ArrayList<>(boats.keySet().stream().toList());
             ids.remove(id);
@@ -74,7 +74,7 @@ public class Fleet {
                     .otherBoats(ids)
                     .currentTerm(0)
                     .votedFor(-1)
-                    .entries(List.of(new Entry(0,"")))
+                    .log(new Log())
                     .build());
             electionTimeoutMap.put(id, random.nextInt(150, 300));
         }

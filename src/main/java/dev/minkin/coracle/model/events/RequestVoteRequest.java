@@ -1,7 +1,7 @@
 package dev.minkin.coracle.model.events;
 
 public record RequestVoteRequest(
-        Integer term,
+        Integer currentTerm,
         Integer candidateId,
         Integer lastLogIndex,
         Integer lastLogTerm) implements Event {}

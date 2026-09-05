@@ -10,4 +10,4 @@ import java.util.List;
 public record PersistentState(
         Integer currentTerm,
         Integer votedFor,
-        List<Entry> entries){ }
+        Log log){ }

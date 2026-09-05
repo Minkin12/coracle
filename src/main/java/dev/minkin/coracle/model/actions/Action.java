@@ -4,5 +4,7 @@ public sealed interface Action permits
         Send,
         Persist,
         Apply,
-        ResetTimer
+        ResetTimer,
+        ClearTimer
+
 {}
